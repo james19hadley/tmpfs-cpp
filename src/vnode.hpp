@@ -24,7 +24,7 @@ public:
 
     /**
      * @brief Checks if the node is a directory
-     * @return true, if it is a directory, else false
+     * @return true, if it is a directory, else true
      */
     virtual bool isDir() const = 0;
 };
@@ -37,6 +37,7 @@ public:
 class File: public VNode {
 public:
     std::string data;
+
     bool isDir() const override { return false; }
 };
 
@@ -52,4 +53,6 @@ public:
     std::unordered_map<std::string, std::shared_ptr<VNode>>children;
 
     bool isDir() const override { return true; }
+    Directory() = default;
+    Directory(std::shared_ptr<Directory> _parent) : parent(_parent) {}
 };
