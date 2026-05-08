@@ -18,9 +18,8 @@
 
 #include "vnode.hpp"
 
+
 class FileSystem {
-    std::shared_ptr<Directory> root;
-    std::shared_ptr<Directory> current_dir;
 
 public:
     FileSystem() {
@@ -28,8 +27,9 @@ public:
         current_dir = root;
     }
 
+
     void mkdir(const std::string &name) {
-        auto new_dir = std::make_shared<Directory>(current_dir);
+        auto new_dir = std::make_shared<Directory>(/*parent=*/current_dir);
         current_dir->children[name] = new_dir;
     }
 
@@ -42,7 +42,16 @@ public:
     void cd(const std::string& name) {
         auto it = current_dir->children.find(name);
         if (it != current_dir->children.end()) {
-            auto next_dir = std::dynamic_pointer_cast<Directory>(it->second);
+            auto node = it->second;
+            while (auto link = std::dynamic_pointer_cast<Symlink>(node)) {
+                node = link->getTarget();
+                if (!node) {
+                    std::cout << "Broken link!\n";
+                    return;
+                }
+            }
+
+            auto next_dir = std::dynamic_pointer_cast<Directory>(node);
             if (next_dir) {
                 current_dir = next_dir;
             } else {
@@ -91,4 +100,20 @@ public:
         }
         std::cout << "\n";
     }
+
+    void ln_s(const std::string& target_name, const std::string& link_name) {
+
+        auto target = current_dir->children[target_name];
+        if (!target) {
+            std::cout << "Error. No files with such name\n";
+            return;
+        }
+        auto new_symlink = std::make_shared<Symlink>(target);
+        current_dir->children[link_name] = new_symlink;
+    }
+
+
+private:
+    std::shared_ptr<Directory> root;
+    std::shared_ptr<Directory> current_dir;
 };

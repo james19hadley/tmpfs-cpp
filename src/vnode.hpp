@@ -11,7 +11,6 @@
 #include <string>
 #include <unordered_map>
 
-
 /**
  * @brief Basic class for all the nodes of the file system
  * Node doesn't know it's name, only stores the meta-data
@@ -36,9 +35,13 @@ public:
  */
 class File: public VNode {
 public:
+    bool isDir() const override { return false; }
+
+
+private:
     std::string data;
 
-    bool isDir() const override { return false; }
+    friend class FileSystem;
 };
 
 
@@ -49,10 +52,38 @@ public:
  */
 class Directory: public VNode {
 public:
+    Directory() = default;
+    Directory(std::shared_ptr<Directory> _parent) : parent(_parent) {}
+
+    bool isDir() const override { return true; }
+
+
+private:
     std::weak_ptr<Directory> parent;
     std::unordered_map<std::string, std::shared_ptr<VNode>>children;
 
-    bool isDir() const override { return true; }
-    Directory() = default;
-    Directory(std::shared_ptr<Directory> _parent) : parent(_parent) {}
+    friend class FileSystem;
+};
+
+
+/**
+ * @brief Symlink class
+ */
+class Symlink: public VNode {
+public:
+    Symlink() = default;
+    Symlink(std::weak_ptr<VNode> _target) : target(_target) {}
+
+    bool isDir() const override {
+        return false; // In Linux Symlink is a separate type, not a directory
+    }
+    std::shared_ptr<VNode> getTarget() const {
+        return target.lock();
+    }
+
+
+private:
+    std::weak_ptr<VNode> target;
+
+    friend class FileSystem;
 };

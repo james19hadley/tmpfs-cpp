@@ -8,9 +8,14 @@ int main() {
     fs.mkdir("user");
     fs.cd("user");
     fs.touch("config.txt");
+    fs.mkdir("test");
+    fs.ln_s("test", "testlink");
+
+    std::cout << "Contents: ";
+    fs.ls();
+
+    fs.cd("testlink");
 
     std::cout << "Current path: ";
     fs.pwd();
-    std::cout << "Contents: ";
-    fs.ls();
 }
