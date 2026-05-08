@@ -12,6 +12,10 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <ranges>
+#include <string_view>
+#include <algorithm>
+
 #include "vnode.hpp"
 
 class FileSystem {
@@ -56,36 +60,34 @@ public:
 
     void pwd() {
         auto now_dir = current_dir;
-        std::vector<std::string> reversed_path;
+        std::vector<std::string_view> reversed_path;
         while (now_dir != root) {
             auto next_dir = now_dir->parent.lock();
             if (next_dir == nullptr) {
-                std::cout << "Some folder on the path to root is non reachable\n";
+                std::cout << "Error. Some directory on the path to root is unreachable\n";
                 return;
             }
-            std::string now_name="";
 
-            auto it = next_dir->children.begin();
-            while (it != next_dir->children.end()) {
-                auto prob_now = it->second;
-                if (prob_now && prob_now == now_dir) {
-                    now_name = it->first;
-                    break;
+            auto it = std::find_if(
+                next_dir->children.begin(),
+                next_dir->children.end(),
+                [&now_dir](const auto& pair) {
+                    return pair.second == now_dir;
                 }
-                ++it;
-            }
-            if (now_name == "") {
-                std::cout << "Error. Didn't find some dir in it's parent children\n";
+            );
+
+            if (it == next_dir->children.end()) {
+                std::cout << "Error. Didn't find some directory in it's parent children\n";
             } else {
-                reversed_path.push_back(now_name);
+                reversed_path.push_back(it->first);
             }
             now_dir = next_dir;
         }
         if (reversed_path.empty()) {
             std::cout << "/";
         }
-        for (auto elem = reversed_path.rbegin(); elem < reversed_path.rend(); ++elem) {
-            std::cout << *elem << "/";
+        for (const auto& name : std::views::reverse(reversed_path)) {
+            std::cout << "/" << name;
         }
         std::cout << "\n";
     }
