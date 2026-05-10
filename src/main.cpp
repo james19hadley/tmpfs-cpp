@@ -1,5 +1,6 @@
 #include "filesystem.hpp"
 #include <iostream>
+#include <assert.h>
 
 int main() {
     FileSystem fs;
@@ -15,6 +16,7 @@ int main() {
     fs.ls();
 
     fs.cd("testlink");
+    assert(fs.resolvePath("/home/user") != nullptr);
 
     std::cout << "Current path: ";
     fs.pwd();

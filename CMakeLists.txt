@@ -7,4 +7,4 @@ set(CMAKE_CXX_EXTENTIONS OFF)
 
 add_executable(tmpfs-cpp)
 
-target_sources(tmpfs-cpp PRIVATE src/main.cpp src/vnode.cpp)
+target_sources(tmpfs-cpp PRIVATE src/main.cpp src/vnode.cpp src/filesystem.cpp)
