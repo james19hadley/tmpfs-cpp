@@ -30,17 +30,17 @@ public:
         current_dir = root;
     }
 
-    /** @brief Creates a directory at the given path. */
-    void mkdir(const std::string &name);
-
     /** @brief Lists the contents of the current directory. */
     void ls();
 
     /** @brief Changes the current directory to the specified path. */
-    void cd(const std::string& name);
+    void cd(const std::string_view path);
+
+    /** @brief Creates a directory at the given path. */
+    void mkdir(const std::string_view path);
 
     /** @brief Creates an empty file at the given path. */
-    void touch(const std::string& name);
+    void touch(const std::string_view path);
 
     /** @brief Prints the absolute path of the current directory. */
     void pwd();

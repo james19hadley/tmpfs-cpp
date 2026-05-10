@@ -7,13 +7,9 @@
 
 #include "filesystem.hpp"
 #include "vnode.hpp"
+
 #include <memory>
 
-
-void FileSystem::mkdir(const std::string &name) {
-    auto new_dir = std::make_shared<Directory>(/*parent=*/current_dir);
-    current_dir->addNode(name, new_dir);
-}
 
 void FileSystem::ls() {
     for (auto const& [name, node] : current_dir->getChildren()) {
@@ -21,18 +17,11 @@ void FileSystem::ls() {
     }
 }
 
-void FileSystem::cd(const std::string& name) {
-    auto node = current_dir->findChild(name);
+void FileSystem::cd(const std::string_view path) {
+    auto node = resolvePath(path);
     if (!node) {
-        std::cout << "No such directory!\n";
+        std::cout << "Invalid path!\n";
         return;
-    }
-    while (auto link = std::dynamic_pointer_cast<Symlink>(node)) {
-        node = link->getTarget();
-        if (!node) {
-            std::cout << "Broken link!\n";
-            return;
-        }
     }
 
     auto next_dir = std::dynamic_pointer_cast<Directory>(node);
@@ -44,9 +33,50 @@ void FileSystem::cd(const std::string& name) {
 
 }
 
-void FileSystem::touch(const std::string& name) {
+void FileSystem::mkdir(const std::string_view path) {
+    auto pos = path.find_last_of("/");
+    auto name = path;
+    auto current = current_dir;
+    if (pos != std::string::npos) {
+        auto dir_path = path.substr(0, pos);
+        current = std::dynamic_pointer_cast<Directory>(resolvePath(dir_path));
+        if (!current) {
+            std::cerr << "Couldn't resolve the path\n";
+            return;
+        }
+        name = path.substr(pos + 1);
+    }
+
+    if (name.empty()) {
+        std::cerr << "Empty name of the directory\n";
+        return;
+    }
+
+    auto new_dir = std::make_shared<Directory>(/*parent=*/current);
+    current->addNode(name, new_dir);
+}
+
+void FileSystem::touch(const std::string_view path) {
+    auto pos = path.find_last_of("/");
+    auto name = path;
+    auto current = current_dir;
+    if (pos != std::string::npos) {
+        auto dir_path = path.substr(0, pos);
+        current = std::dynamic_pointer_cast<Directory>(resolvePath(dir_path));
+        if (!current) {
+            std::cerr << "Couldn't resolve the path\n";
+            return;
+        }
+        name = path.substr(pos + 1);
+    }
+
+    if (name.empty()) {
+        std::cerr << "Empty name of the file\n";
+        return;
+    }
+
     auto new_file = std::make_shared<File>();
-    current_dir->addNode(name, new_file);
+    current->addNode(name, new_file);
 }
 
 void FileSystem::pwd() {
