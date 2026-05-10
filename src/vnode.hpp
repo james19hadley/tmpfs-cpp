@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <optional>
 
 /**
  * @brief Basic class for all the nodes of the file system
@@ -36,12 +37,11 @@ public:
 class File: public VNode {
 public:
     bool isDir() const override { return false; }
-
+    void write(std::string_view content);
+    std::string_view read() const;
 
 private:
     std::string data;
-
-    friend class FileSystem;
 };
 
 
@@ -50,19 +50,25 @@ private:
  * Has parent
  * Has children
  */
-class Directory: public VNode {
+class Directory: public VNode, public std::enable_shared_from_this<Directory> {
 public:
     Directory() = default;
     Directory(std::shared_ptr<Directory> _parent) : parent(_parent) {}
 
     bool isDir() const override { return true; }
 
+    std::shared_ptr<Directory> getParent() const { return parent.lock(); }
+    const std::unordered_map<std::string, std::shared_ptr<VNode>>& getChildren() const {
+        return children;
+    }
+
+    void addNode(std::string_view name, std::shared_ptr<VNode> node);
+    std::shared_ptr<VNode> findChild(std::string_view name);
+    std::optional<std::string_view> findChildName(std::shared_ptr<VNode> child);
 
 private:
     std::weak_ptr<Directory> parent;
     std::unordered_map<std::string, std::shared_ptr<VNode>>children;
-
-    friend class FileSystem;
 };
 
 
@@ -81,9 +87,6 @@ public:
         return target.lock();
     }
 
-
 private:
     std::weak_ptr<VNode> target;
-
-    friend class FileSystem;
 };
