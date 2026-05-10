@@ -1,3 +1,10 @@
+/**
+ * @file filesystem.сpp
+ * @brief Interface description for the virtual nodes of the In-Mempry file system
+ * @author Jack Heather
+ * @date 2026-05-10
+ */
+
 #include "filesystem.hpp"
 #include "vnode.hpp"
 #include <memory>
