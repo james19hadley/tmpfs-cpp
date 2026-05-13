@@ -30,11 +30,14 @@ int main() {
             args.push_back(word);
         }
 
-        // Теперь работаем со списком args
         const std::string& cmd = args[0];
 
         if (cmd == "ls") {
-            fs.ls();
+            if (args.size() >= 2) {
+                fs.ls(args[1]);
+            } else {
+                fs.ls();
+            }
         } else if (cmd == "pwd") {
             std::cout << fs.pwd() << "\n";
         } else if (cmd == "cd") {

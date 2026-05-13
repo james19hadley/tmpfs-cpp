@@ -15,7 +15,7 @@
 
 void FileSystem::ls() const {
     for (auto const& [name, node] : current_dir->getChildren()) {
-        std::cerr << name << (node->isDir() ? "/" : "") << "\n";
+        std::cout << name << (node->isDir() ? "/" : "") << "\n";
     }
 }
 
@@ -23,11 +23,11 @@ void FileSystem::ls(const std::string_view path) const {
     auto current = resolvePath(path);
     auto dir = std::dynamic_pointer_cast<Directory>(current);
     if (!dir) {
-        std::cerr << "Path is not a directory\n";
+        std::cout << "Path is not a directory\n";
         return;
     }
     for (auto const& [name, node] : dir->getChildren()) {
-        std::cerr << name << (node->isDir() ? "/" : "") << "\n";
+        std::cout << name << (node->isDir() ? "/" : "") << "\n";
     }
 }
 
@@ -82,6 +82,8 @@ FSError FileSystem::touch(const std::string_view path) {
     }
 
     if (name.empty()) return FSError::EmptyName;
+
+    if (current->findChild(name)) return FSError::AlreadyExists;
 
     auto new_file = std::make_shared<File>();
     current->addNode(name, new_file);
@@ -155,7 +157,12 @@ std::shared_ptr<VNode> FileSystem::resolvePath(std::string_view path) const {
             return nullptr;
         }
 
-        current = dir->findChild(token);
+        if (token == "..") {
+            auto parent = dir->getParent();
+            current = parent ? parent : root;
+        } else {
+            current = dir->findChild(token);
+        }
 
         if (!current) return nullptr;
 
